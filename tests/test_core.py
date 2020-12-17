@@ -3809,13 +3809,11 @@ ok
       ''', expected=['new main\nnew side\n', 'new side\nnew main\n'])
     test()
 
-    # TODO: this in wasm
-    if self.get_setting('ASSERTIONS') == 1 and not self.is_wasm():
-      print('check warnings')
-      self.set_setting('ASSERTIONS', 2)
-      test()
-      full = self.run_js('src.js')
-      self.assertNotContained("trying to dynamically load symbol '__ZN5ClassC2EPKc' (from 'liblib.so') that already exists", full)
+    print('check warnings')
+    self.set_setting('ASSERTIONS', 2)
+    test()
+    full = self.run_js('src.js')
+    self.assertNotContained('already exists', full)
 
   @needs_dlfcn
   def test_dylink_i64(self):

@@ -61,13 +61,23 @@ var LibraryDylink = {
     }
   },
 
-  $updateGOT__deps: ['$GOT'],
+  $isWeak: function(symName) {
+    // TODO: remove this once we have some way to indicate weak exports.
+    return [
+      '__cpp_exception',
+      '__wasm_apply_data_relocs',
+      '__dso_handle',
+      '__set_stack_limits'
+    ].indexOf(symName) != -1;
+  },
+
+  $updateGOT__deps: ['$GOT', '$isWeak'],
   $updateGOT: function(exports) {
 #if DYLINK_DEBUG
     err("updateGOT: " + Object.keys(exports).length);
 #endif
     for (var symName in exports) {
-      if (symName == '__cpp_exception' || symName == '__dso_handle' || symName == '__wasm_apply_relocs') {
+      if (isWeak(symName)) {
         continue;
       }
 
@@ -410,6 +420,10 @@ var LibraryDylink = {
         if (!flags.allowUndefined) {
           reportUndefinedSymbols();
         }
+#if STACK_OVERFLOW_CHECK >= 2
+
+        moduleExports['__set_stack_limits'](_emscripten_stack_get_base(), _emscripten_stack_get_end());
+#endif
         // initialize the module
         var init = moduleExports['__post_instantiate'];
         if (init) {
@@ -577,7 +591,7 @@ var LibraryDylink = {
         else {
           var curr = Module[sym], next = libModule[sym];
           // don't warn on functions - might be odr, linkonce_odr, etc.
-          if (!(typeof curr === 'function' && typeof next === 'function')) {
+          if (!(typeof curr === 'function' && typeof next === 'function') && !isWeak(sym)) {
             err("warning: symbol '" + sym + "' from '" + lib + "' already exists (duplicate symbol? or weak linking, which isn't supported yet?)");
           }
         }
