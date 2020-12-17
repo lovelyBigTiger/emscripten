@@ -1374,7 +1374,6 @@ There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR P
     if not compile_only and not options.post_link:
       ldflags = shared.emsdk_ldflags(newargs)
       for f in ldflags:
-        newargs.append(f)
         add_link_flag(len(newargs), f)
 
     # SSEx is implemented on top of SIMD128 instruction set, but do not pass SSE flags to LLVM
@@ -1908,9 +1907,6 @@ There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR P
       shared.Settings.EXPORTED_FUNCTIONS += ['_emscripten_stack_get_current',
                                              '_emscripten_stack_get_base',
                                              '_emscripten_stack_get_end']
-
-    if shared.Settings.USE_PTHREADS:
-      newargs.append('-pthread')
 
     # Any "pointers" passed to JS will now be i64's, in both modes.
     if shared.Settings.MEMORY64:
